@@ -10,26 +10,24 @@
  * The app navigation resides in ./app/navigators, so head over there
  * if you're interested in adding screens and navigators.
  */
-if (__DEV__) {
-  // Load Reactotron configuration in development. We don't want to
-  // include this in our production bundle, so we are using `if (__DEV__)`
-  // to only execute this in development.
-  require("./devtools/ReactotronConfig.ts")
-}
-import "./i18n"
 import "./utils/ignoreWarnings"
 import { useFonts } from "expo-font"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
 import * as Linking from "expo-linking"
-import { useInitialRootStore } from "./models"
+import { ConvexProvider, ConvexReactClient } from "convex/react"
 import { AppNavigator, useNavigationPersistence } from "./navigators"
-import { ErrorBoundary } from "./screens/ErrorScreen/ErrorBoundary"
+import { ErrorBoundary } from "./components/ErrorBoundary"
 import * as storage from "./utils/storage"
 import { customFontsToLoad } from "./theme"
 import Config from "./config"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { ViewStyle } from "react-native"
+
+// Initialize Convex client
+const convex = new ConvexReactClient(
+  process.env.EXPO_PUBLIC_CONVEX_URL || "https://kindhearted-dalmatian-79.convex.cloud"
+)
 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
@@ -72,16 +70,24 @@ function App(props: AppProps) {
   } = useNavigationPersistence(storage, NAVIGATION_PERSISTENCE_KEY)
 
   const [areFontsLoaded, didFontLoadError] = useFonts(customFontsToLoad)
+  const [isReady, setIsReady] = useState(false)
 
-  const { rehydrated } = useInitialRootStore(() => {
-    // This runs after the root store has been initialized and rehydrated.
+  useEffect(() => {
+    // Initialize app and hide splash screen
+    const initializeApp = async () => {
+      // If your initialization scripts run very fast, it's good to show the splash screen for just a bit longer to prevent flicker.
+      // Slightly delaying splash screen hiding for better UX; can be customized or removed as needed,
+      // Note: (vanilla Android) The splash-screen will not appear if you launch your app via the terminal or Android Studio. Kill the app and launch it normally by tapping on the launcher icon. https://stackoverflow.com/a/69831106
+      // Note: (vanilla iOS) You might notice the splash-screen logo change size. This happens in debug/development mode. Try building the app for release.
+      await new Promise(resolve => setTimeout(resolve, 500))
+      await hideSplashScreen()
+      setIsReady(true)
+    }
 
-    // If your initialization scripts run very fast, it's good to show the splash screen for just a bit longer to prevent flicker.
-    // Slightly delaying splash screen hiding for better UX; can be customized or removed as needed,
-    // Note: (vanilla Android) The splash-screen will not appear if you launch your app via the terminal or Android Studio. Kill the app and launch it normally by tapping on the launcher icon. https://stackoverflow.com/a/69831106
-    // Note: (vanilla iOS) You might notice the splash-screen logo change size. This happens in debug/development mode. Try building the app for release.
-    setTimeout(hideSplashScreen, 500)
-  })
+    if (isNavigationStateRestored && (areFontsLoaded || didFontLoadError)) {
+      initializeApp()
+    }
+  }, [isNavigationStateRestored, areFontsLoaded, didFontLoadError, hideSplashScreen])
 
   // Before we show the app, we have to wait for our state to be ready.
   // In the meantime, don't render anything. This will be the background
@@ -90,7 +96,7 @@ function App(props: AppProps) {
   // In Android: https://stackoverflow.com/a/45838109/204044
   // You can replace with your own loading component if you wish.
   // (If fonts fail to load, we show the app anyway)
-  if (!rehydrated || !isNavigationStateRestored || (!areFontsLoaded && !didFontLoadError))
+  if (!isReady || !isNavigationStateRestored || (!areFontsLoaded && !didFontLoadError))
     return null
 
   const linking = {
@@ -104,17 +110,19 @@ function App(props: AppProps) {
 
   // otherwise, we're ready to render the app
   return (
-    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-      <ErrorBoundary catchErrors={Config.catchErrors}>
-        <GestureHandlerRootView style={$container}>
-          <AppNavigator
-            linking={linking}
-            initialState={initialNavigationState}
-            onStateChange={onNavigationStateChange}
-          />
-        </GestureHandlerRootView>
-      </ErrorBoundary>
-    </SafeAreaProvider>
+    <ConvexProvider client={convex}>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <ErrorBoundary catchErrors={Config.catchErrors}>
+          <GestureHandlerRootView style={$container}>
+            <AppNavigator
+              linking={linking}
+              initialState={initialNavigationState}
+              onStateChange={onNavigationStateChange}
+            />
+          </GestureHandlerRootView>
+        </ErrorBoundary>
+      </SafeAreaProvider>
+    </ConvexProvider>
   )
 }
 

@@ -86,3 +86,7 @@ web-build/
 !env.js
 
 /coverage
+
+# Convex
+.convex/
+convex/_generated/

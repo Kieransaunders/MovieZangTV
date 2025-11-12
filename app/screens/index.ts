@@ -1,9 +1,7 @@
-export * from "./WelcomeScreen"
-
-export * from "./LoginScreen"
-export * from "./DemoCommunityScreen"
-export * from "./DemoDebugScreen"
-export * from "./DemoShowroomScreen/DemoShowroomScreen"
-
-export * from "./ErrorScreen/ErrorBoundary"
-// export other screens here
+export * from "./HomeScreen"
+export * from "./CreateRoomScreen"
+export * from "./JoinRoomScreen"
+export * from "./ShareRoomScreen"
+export * from "./RoomScreen"
+export * from "./ResultsScreen"
+export * from "./AboutScreen"

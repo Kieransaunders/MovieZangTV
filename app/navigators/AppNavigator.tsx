@@ -1,46 +1,28 @@
 /**
- * The app navigator (formerly "AppNavigator" and "MainNavigator") is used for the primary
- * navigation flows of your app.
- * Generally speaking, it will contain an auth flow (registration, login, forgot password)
- * and a "main" flow which the user will use once logged in.
+ * The app navigator contains the primary navigation flows for MovieZang TV.
+ * It provides a simple stack navigation structure optimized for TV experiences.
  */
 import {
   DarkTheme,
   DefaultTheme,
   NavigationContainer,
-  NavigatorScreenParams,
 } from "@react-navigation/native"
-import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack"
-import { observer } from "mobx-react-lite"
+import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import React from "react"
 import { useColorScheme } from "react-native"
-import * as Screens from "app/screens"
 import Config from "../config"
-import { useStores } from "../models"
-import { DemoNavigator, DemoTabParamList } from "./DemoNavigator"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 import { colors } from "app/theme"
+import { AppStackParamList } from "./types"
 
-/**
- * This type allows TypeScript to know what routes are defined in this navigator
- * as well as what properties (if any) they might take when navigating to them.
- *
- * If no params are allowed, pass through `undefined`. Generally speaking, we
- * recommend using your MobX-State-Tree store(s) to keep application state
- * rather than passing state through navigation params.
- *
- * For more information, see this documentation:
- *   https://reactnavigation.org/docs/params/
- *   https://reactnavigation.org/docs/typescript#type-checking-the-navigator
- *   https://reactnavigation.org/docs/typescript/#organizing-types
- */
-export type AppStackParamList = {
-  Welcome: undefined
-  Login: undefined
-  Demo: NavigatorScreenParams<DemoTabParamList>
-  // 🔥 Your screens go here
-  // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
-}
+// Import MovieZang screens
+import HomeScreen from "app/screens/HomeScreen"
+import CreateRoomScreen from "app/screens/CreateRoomScreen"
+import JoinRoomScreen from "app/screens/JoinRoomScreen"
+import ShareRoomScreen from "app/screens/ShareRoomScreen"
+import RoomScreen from "app/screens/RoomScreen"
+import ResultsScreen from "app/screens/ResultsScreen"
+import AboutScreen from "app/screens/AboutScreen"
 
 /**
  * This is a list of all the route names that will exit the app if the back button
@@ -48,46 +30,101 @@ export type AppStackParamList = {
  */
 const exitRoutes = Config.exitRoutes
 
-export type AppStackScreenProps<T extends keyof AppStackParamList> = NativeStackScreenProps<
-  AppStackParamList,
-  T
->
+// Deep linking configuration for MovieZang
+const linking = {
+  prefixes: ['moviezang://', 'https://moviezang.app'],
+  config: {
+    screens: {
+      Home: '',
+      About: 'about',
+      CreateRoom: 'create',
+      JoinRoom: 'join',
+      ShareRoom: 'room/:roomCode/share',
+      Room: 'room/:roomCode',
+      Results: 'results/:roomCode',
+    },
+  },
+}
 
 // Documentation: https://reactnavigation.org/docs/stack-navigator/
 const Stack = createNativeStackNavigator<AppStackParamList>()
 
-const AppStack = observer(function AppStack() {
-  const {
-    authenticationStore: { isAuthenticated },
-  } = useStores()
-
+function AppStack() {
   return (
     <Stack.Navigator
-      screenOptions={{ headerShown: false, navigationBarColor: colors.background }}
-      initialRouteName={isAuthenticated ? "Welcome" : "Login"}
+      screenOptions={{
+        headerShown: false,
+        navigationBarColor: colors.background,
+        contentStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+      initialRouteName="Home"
     >
-      {isAuthenticated ? (
-        <>
-          <Stack.Screen name="Welcome" component={Screens.WelcomeScreen} />
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          title: 'MovieZang',
+        }}
+      />
 
-          <Stack.Screen name="Demo" component={DemoNavigator} />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="Login" component={Screens.LoginScreen} />
-        </>
-      )}
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
+        options={{
+          title: 'About',
+        }}
+      />
 
-      {/** 🔥 Your screens go here */}
-      {/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
+      <Stack.Screen
+        name="CreateRoom"
+        component={CreateRoomScreen}
+        options={{
+          title: 'Create Room',
+        }}
+      />
+
+      <Stack.Screen
+        name="JoinRoom"
+        component={JoinRoomScreen}
+        options={{
+          title: 'Join Room',
+        }}
+      />
+
+      <Stack.Screen
+        name="ShareRoom"
+        component={ShareRoomScreen}
+        options={({ route }) => ({
+          title: `Share Room ${route.params.roomCode}`,
+        })}
+      />
+
+      <Stack.Screen
+        name="Room"
+        component={RoomScreen}
+        options={({ route }) => ({
+          title: `Room ${route.params.roomCode}`,
+          gestureEnabled: false, // Prevent accidental swipe back during voting
+        })}
+      />
+
+      <Stack.Screen
+        name="Results"
+        component={ResultsScreen}
+        options={{
+          title: 'Results',
+        }}
+      />
     </Stack.Navigator>
   )
-})
+}
 
 export interface NavigationProps
   extends Partial<React.ComponentProps<typeof NavigationContainer>> {}
 
-export const AppNavigator = observer(function AppNavigator(props: NavigationProps) {
+export function AppNavigator(props: NavigationProps) {
   const colorScheme = useColorScheme()
 
   useBackButtonHandler((routeName) => exitRoutes.includes(routeName))
@@ -96,9 +133,10 @@ export const AppNavigator = observer(function AppNavigator(props: NavigationProp
     <NavigationContainer
       ref={navigationRef}
       theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+      linking={linking}
       {...props}
     >
       <AppStack />
     </NavigationContainer>
   )
-})
+}

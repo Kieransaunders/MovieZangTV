@@ -1,17 +1,17 @@
 {
-  "name": "IgniteTV",
-  "displayName": "IgniteTV",
+  "name": "MovieZang",
+  "displayName": "MovieZang",
   "expo": {
-    "name": "IgniteTV",
-    "slug": "IgniteTV",
-    "scheme": "ignitetv",
+    "name": "MovieZang",
+    "slug": "moviezang-tv",
+    "scheme": "moviezang",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon-all.png",
     "splash": {
       "image": "./assets/images/splash-logo-all.png",
       "resizeMode": "contain",
-      "backgroundColor": "#191015"
+      "backgroundColor": "#000000"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -28,7 +28,7 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "icon": "./assets/images/app-icon-android-legacy.png",
-      "package": "com.ignitetv",
+      "package": "com.moviezang.tv",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/app-icon-android-adaptive-foreground.png",
         "backgroundImage": "./assets/images/app-icon-android-adaptive-background.png"
@@ -36,28 +36,31 @@
       "splash": {
         "image": "./assets/images/splash-logo-android-universal.png",
         "resizeMode": "contain",
-        "backgroundColor": "#191015"
+        "backgroundColor": "#000000"
       },
       "userInterfaceStyle": "light"
     },
     "ios": {
       "icon": "./assets/images/app-icon-ios.png",
       "supportsTablet": true,
-      "bundleIdentifier": "com.ignitetv",
+      "bundleIdentifier": "com.moviezang.tv",
       "splash": {
         "image": "./assets/images/splash-logo-ios-mobile.png",
         "tabletImage": "./assets/images/splash-logo-ios-tablet.png",
         "resizeMode": "contain",
-        "backgroundColor": "#191015"
+        "backgroundColor": "#000000"
       },
       "userInterfaceStyle": "light"
+    },
+    "tvos": {
+      "bundleIdentifier": "com.moviezang.tv"
     },
     "web": {
       "favicon": "./assets/images/app-icon-web-favicon.png",
       "splash": {
         "image": "./assets/images/splash-logo-web.png",
         "resizeMode": "contain",
-        "backgroundColor": "#191015"
+        "backgroundColor": "#000000"
       },
       "bundler": "metro"
     },
@@ -77,16 +80,11 @@
           }
         }
       ],
-      "expo-font",
-      "expo-localization",
-      "expo-build-properties"
+      "expo-font"
     ],
     "newArchEnabled": true,
-    "experiments": {
-      "tsconfigPaths": true
+    "extra": {
+      "convexUrl": "https://kindhearted-dalmatian-79.convex.cloud"
     }
-  },
-  "ignite": {
-    "version": "9.6.3"
   }
 }
