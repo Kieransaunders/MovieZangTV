@@ -141,6 +141,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           style={styles.backdrop}
           activeOpacity={1}
           onPress={onClose}
+          focusable={false}
         />
 
         {/* Chat Panel */}
@@ -160,7 +161,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               <Ionicons name="chatbubble" size={20} color="#f97316" />
               <Text style={styles.headerTitle}>Chat</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} focusable={true}>
               <Ionicons name="close" size={24} color="#8E8E93" />
             </TouchableOpacity>
           </View>
@@ -212,9 +213,12 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 value={newMessage}
                 onChangeText={handleInputChange}
                 maxLength={500}
-                multiline
+                multiline={Platform.isTV && Platform.OS === 'ios' ? false : true}
                 returnKeyType="send"
-                blurOnSubmit={false}
+                editable={true}
+                autoFocus={false}
+                focusable={Platform.isTV ? true : undefined}
+                blurOnSubmit={Platform.isTV ? false : undefined}
                 onSubmitEditing={handleSendMessage}
               />
               <TouchableOpacity
@@ -224,6 +228,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                   styles.sendButton,
                   !newMessage.trim() && styles.sendButtonDisabled,
                 ]}
+                focusable={true}
               >
                 <Ionicons
                   name="send"

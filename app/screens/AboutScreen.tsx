@@ -167,6 +167,7 @@ const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
             <TouchableOpacity
               style={styles.ctaButton}
               onPress={() => openURL('https://iconnectit.co.uk')}
+              focusable={true}
             >
               <LinearGradient
                 colors={['#ef4444', '#dc2626']}
@@ -183,6 +184,7 @@ const AboutScreen: React.FC<AboutScreenProps> = ({ navigation }) => {
           <TouchableOpacity
             style={styles.movedBackButton}
             onPress={() => navigation.navigate('Home')}
+            focusable={true}
           >
             <Ionicons name="arrow-back-circle-outline" size={32} color="#8E8E93" />
             <Text style={styles.movedBackButtonText}>Back to Home</Text>

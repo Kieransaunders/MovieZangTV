@@ -9,7 +9,7 @@ import {
 } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import React from "react"
-import { useColorScheme } from "react-native"
+import { useColorScheme, Platform } from "react-native"
 import Config from "../config"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 import { colors } from "app/theme"
@@ -129,11 +129,15 @@ export function AppNavigator(props: NavigationProps) {
 
   useBackButtonHandler((routeName) => exitRoutes.includes(routeName))
 
+  // Disable deep linking on TV - users only create/join rooms via UI
+  // This prevents timeout errors in development and simplifies TV navigation
+  const linkingConfig = Platform.isTV ? undefined : linking
+
   return (
     <NavigationContainer
       ref={navigationRef}
       theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-      linking={linking}
+      linking={linkingConfig}
       {...props}
     >
       <AppStack />

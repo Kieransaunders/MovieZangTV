@@ -173,13 +173,19 @@ export const TextField = forwardRef(function TextField(props: TextFieldProps, re
 
   useImperativeHandle(ref, () => input.current as TextInput)
 
+  // Use View instead of TouchableOpacity on TV to avoid focus conflicts
+  const Container = Platform.isTV ? View : TouchableOpacity;
+  const containerProps = Platform.isTV
+    ? { style: $containerStyles }
+    : {
+        activeOpacity: 1,
+        style: $containerStyles,
+        onPress: focusInput,
+        accessibilityState: { disabled },
+      };
+
   return (
-    <TouchableOpacity
-      activeOpacity={1}
-      style={$containerStyles}
-      onPress={focusInput}
-      accessibilityState={{ disabled }}
-    >
+    <Container {...containerProps}>
       {!!(label || labelTx) && (
         <Text
           preset="formLabel"
@@ -211,6 +217,9 @@ export const TextField = forwardRef(function TextField(props: TextFieldProps, re
           editable={!disabled}
           multiline={multiline ?? false}
           style={$inputStyles}
+          autoFocus={false}
+          focusable={Platform.isTV ? true : undefined}
+          blurOnSubmit={Platform.isTV ? false : undefined}
         />
 
         {!!RightAccessory && (
@@ -233,7 +242,7 @@ export const TextField = forwardRef(function TextField(props: TextFieldProps, re
           style={$helperStyles}
         />
       )}
-    </TouchableOpacity>
+    </Container>
   )
 })
 

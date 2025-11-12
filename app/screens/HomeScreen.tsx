@@ -59,6 +59,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <TouchableOpacity
           style={styles.aboutButton}
           onPress={handleAbout}
+          focusable={true}
         >
           <Ionicons name="information-circle-outline" size={28} color="#8E8E93" />
         </TouchableOpacity>
@@ -109,6 +110,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 style={[styles.actionButton, styles.createButton]}
                 onPress={handleCreateRoom}
                 disabled={connectionStatus !== 'connected'}
+                focusable={true}
               >
                 <LinearGradient
                   colors={['#ef4444', '#f97316']}
@@ -125,6 +127,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 style={[styles.actionButton, styles.joinButton]}
                 onPress={handleJoinRoom}
                 disabled={connectionStatus !== 'connected'}
+                focusable={true}
               >
                 <View style={styles.actionButtonOutline}>
                   <Ionicons name="enter" size={24} color="#ef4444" />

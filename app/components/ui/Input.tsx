@@ -3,7 +3,7 @@
  * Material Design-inspired text input for mobile app
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   TextInput,
   View,
@@ -35,7 +35,12 @@ export const Input: React.FC<InputProps> = ({
   style,
   ...props
 }) => {
+  // Use ref on TV to avoid re-renders during focus (causes keyboard to dismiss)
+  const isFocusedRef = useRef(false);
   const [isFocused, setIsFocused] = useState(false);
+
+  // Force multiline=false on iOS TV (buggy multiline support)
+  const multiline = IS_TV && Platform.OS === 'ios' ? false : props.multiline;
 
   return (
     <View style={[styles.container, IS_TV && styles.tvContainer, containerStyle]}>
@@ -46,7 +51,7 @@ export const Input: React.FC<InputProps> = ({
           styles.inputContainer,
           IS_TV && styles.tvInputContainer,
           error && styles.errorContainer,
-          IS_TV && isFocused && styles.tvFocusedContainer,
+          IS_TV && isFocusedRef.current && styles.tvFocusedContainer,
         ]}
       >
         {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
@@ -60,14 +65,28 @@ export const Input: React.FC<InputProps> = ({
           ]}
           placeholderTextColor="#8E8E93"
           onFocus={(e) => {
-            setIsFocused(true);
+            if (IS_TV) {
+              // Use ref on TV to avoid re-render during focus event
+              isFocusedRef.current = true;
+            } else {
+              setIsFocused(true);
+            }
             props.onFocus?.(e);
           }}
           onBlur={(e) => {
-            setIsFocused(false);
+            if (IS_TV) {
+              isFocusedRef.current = false;
+            } else {
+              setIsFocused(false);
+            }
             props.onBlur?.(e);
           }}
+          editable={true}
+          multiline={multiline ?? false}
           {...props}
+          autoFocus={false}
+          focusable={IS_TV ? true : undefined}
+          blurOnSubmit={IS_TV ? false : undefined}
         />
 
         {rightIcon && <View style={styles.iconContainer}>{rightIcon}</View>}

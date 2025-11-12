@@ -162,6 +162,7 @@ Example focus pattern:
 - **No Local State for Server Data**: Use `useQuery()` for reading, `useMutation()` for writing.
 - **Auto-Subscribing**: Convex queries automatically re-render on backend changes.
 - **Presence**: Use `@convex-dev/presence` for typing indicators and online status.
+- **⚠️ Shared Backend**: DO NOT modify `convex/schema.ts` - shared with production web app!
 
 Example query pattern:
 ```tsx
@@ -172,10 +173,16 @@ const room = useQuery(api.rooms.getRoom, { roomId })
 const joinRoom = useMutation(api.rooms.joinRoom)
 ```
 
-### 3. Navigation with Deep Linking
-- **Custom Scheme**: `moviezang://`
-- **Universal Links**: `https://moviezang.app` (configured but may need DNS setup)
+### 3. Navigation
+
+**TV Platform**: Deep linking is **disabled on TV** (see `app/navigators/AppNavigator.tsx:134`) because:
+- TV users cannot click links from messages, emails, or browsers
+- All room access is via manual 4-digit code entry
+- Simplifies TV navigation and eliminates dev server timeout errors
+
+**Mobile/Web Platforms**: Deep linking enabled with custom scheme `moviezang://`
 - **Room Codes**: Parse from URLs like `moviezang://room/1234` or `moviezang://results/1234`
+- **Universal Links**: `https://moviezang.app` (configured but may need DNS setup)
 
 Deep link structure (app/navigators/AppNavigator.tsx:34):
 ```
@@ -183,6 +190,12 @@ moviezang://                    → Home
 moviezang://create              → CreateRoom
 moviezang://room/AB12           → Room (with roomCode param)
 moviezang://results/AB12        → Results
+```
+
+**TV Navigation Flow**:
+```
+Home Screen → Create Room → Share Room → Room → Results
+            → Join Room → Room → Results
 ```
 
 ### 4. Multi-Platform Support
@@ -202,6 +215,18 @@ yarn ios  # Runs on iPhone simulator
 ```
 
 ## Convex Backend
+
+⚠️ **CRITICAL: DO NOT MODIFY CONVEX SCHEMA** ⚠️
+
+This TV app shares the **same Convex deployment** as the production web app at moviezang.com. Any changes to `convex/schema.ts` or table structures will affect BOTH applications and could break the web app.
+
+**Allowed**: Adding new queries, mutations, or helper functions in existing files
+**Allowed**: Reading from existing tables with new query logic
+**FORBIDDEN**: Modifying schema.ts (adding/removing tables, changing fields, adding/removing indexes)
+**FORBIDDEN**: Renaming tables or fields
+**FORBIDDEN**: Changing field types or validators
+
+See `CONVEX_SETUP.md` for more details on the shared backend architecture.
 
 ### Deployment
 - **URL**: `https://kindhearted-dalmatian-79.convex.cloud`
@@ -233,9 +258,139 @@ Set at https://dashboard.convex.dev/:
 ## TV-Specific Considerations
 
 ### Focus Management
-- **TVFocusGuideView**: Use for complex layouts (not yet implemented in all screens)
+- **TVFocusGuideView**: Use for complex layouts (required for text input forms)
 - **hasTVPreferredFocus**: Set initial focus on screen load
 - **Default Focus States**: Pressable components automatically handle focus
+- **TV Remote Events**: Use `useTVEventHandler` hook for custom remote control handling
+- **BackHandler**: Automatically supports TV menu button for back navigation (see `navigationUtilities.ts:59`)
+
+### Text Input on TV (CRITICAL PATTERN)
+
+⚠️ **Text input on tvOS requires special handling** to prevent the keyboard dialog from opening and immediately closing.
+
+**Required Pattern** (see `app/screens/JoinRoomScreen.tsx:131`, `app/screens/CreateRoomScreen.tsx:134`):
+
+```tsx
+import { Platform } from 'react-native';
+
+// 1. Conditional import for TV focus guide
+const TVFocusGuideView = Platform.isTV
+  ? require('react-native').TVFocusGuideView
+  : View;
+
+// 2. Wrap all text inputs in TVFocusGuideView with autoFocus
+<TVFocusGuideView autoFocus>
+  <Input
+    value={name}
+    onChangeText={setName}
+    placeholder="Enter name"
+  />
+  <Button title="Submit" onPress={handleSubmit} />
+</TVFocusGuideView>
+```
+
+**TextInput Props for TV** (implemented in `app/components/ui/Input.tsx:70-72`):
+```tsx
+<TextInput
+  autoFocus={false}                    // Prevent auto-focus conflicts
+  focusable={Platform.isTV ? true : undefined}  // Enable remote focus
+  blurOnSubmit={Platform.isTV ? false : undefined}  // Keep keyboard open between fields
+  {...otherProps}
+/>
+```
+
+**Container Conflicts**: Avoid wrapping TextInput in `TouchableOpacity` on TV - use `View` instead (see `app/components/TextField.tsx:177-185`):
+```tsx
+const Container = Platform.isTV ? View : TouchableOpacity;
+const containerProps = Platform.isTV
+  ? { style: styles.container }
+  : { activeOpacity: 1, onPress: focusInput, style: styles.container };
+
+<Container {...containerProps}>
+  <TextInput />
+</Container>
+```
+
+**Multiline Handling**: Disable multiline on iOS TV as it's poorly supported:
+```tsx
+const multiline = Platform.isTV && Platform.OS === 'ios' ? false : props.multiline;
+```
+
+**Reference**: [IgniteTV LoginScreen](https://github.com/react-native-tvos/IgniteTV/blob/master/app/screens/LoginScreen.tsx)
+
+### Touchable Components on TV
+
+All touchable components support TV remote interaction:
+- **TouchableOpacity**: Preferred for most buttons (supports `tvParallaxProperties`)
+- **TouchableHighlight**: Alternative with highlight effect
+- **Pressable**: Best for custom focus states (see `app/components/ui/Button.tsx:83-98`)
+
+**Event Handlers**:
+- `onFocus`: Called when component gains focus via remote
+- `onBlur`: Called when focus is lost
+- `onPress`: Called when "select" button pressed
+
+**Example** (Button component pattern):
+```tsx
+<Pressable
+  focusable={true}
+  style={({ focused }) => [
+    styles.button,
+    focused && styles.buttonFocused
+  ]}
+  onPress={handlePress}
+>
+  {({ focused }) => (
+    <LinearGradient
+      colors={focused ? ['#f97316', '#ef4444'] : ['#ef4444', '#f97316']}
+      style={styles.gradient}
+    >
+      <Text>Press Me</Text>
+    </LinearGradient>
+  )}
+</Pressable>
+```
+
+### Custom TV Remote Handling
+
+For complex interactions beyond standard touch events, use `useTVEventHandler`:
+
+```tsx
+import { useTVEventHandler } from 'react-native';
+
+const handleTVEvent = (evt: any) => {
+  if (evt && evt.eventType) {
+    switch (evt.eventType) {
+      case 'right':
+        // Handle right D-pad
+        break;
+      case 'left':
+        // Handle left D-pad
+        break;
+      case 'up':
+      case 'down':
+        // Handle up/down D-pad
+        break;
+      case 'select':
+        // Handle select/OK button
+        break;
+      case 'playPause':
+        // Handle play/pause button
+        break;
+    }
+  }
+};
+
+useTVEventHandler(handleTVEvent);
+```
+
+**Example**: See `app/components/ui/MovieCard.tsx:136-159` for D-pad navigation between Like/Nope buttons.
+
+### TV Developer Tools
+
+- **Apple TV Simulator**: Press **cmd-D** to open developer menu
+- **Physical Apple TV**: Long-press **play/pause button** on remote
+- **Android TV**: Shake device or press menu button
 
 ### Assets
 - **Android TV Banner**: Required for launcher (`assets/images/tv_banner.png` → `android/app/src/main/res/drawable/`)
@@ -266,11 +421,30 @@ const buttonSize = isTV ? 60 : 44
 5. Ensure focus states work on TV
 
 ### Adding Convex Backend Function
-1. Create/edit file in `convex/` (e.g., `convex/myFeature.ts`)
+
+⚠️ **WARNING**: Do NOT modify `convex/schema.ts` - this backend is shared with the web app!
+
+**Safe additions only**:
+1. Create/edit file in `convex/` (e.g., `convex/myFeature.ts`) - NOT schema.ts
 2. Import `{ query, mutation }` from `convex/_generated/server`
 3. Define with `v` validators from `convex/values`
-4. Run `npx convex dev` to regenerate types
-5. Import from `convex/_generated/api` in React components
+4. Use existing tables only - do not add new tables or modify existing ones
+5. Run `npx convex dev` to regenerate types
+6. Import from `convex/_generated/api` in React components
+
+**Example of safe query addition**:
+```typescript
+// convex/rooms.ts
+export const getRoomsByStatus = query({
+  args: { status: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("rooms")
+      .withIndex("by_status", (q) => q.eq("status", args.status))
+      .collect()
+  },
+})
+```
 
 ### Testing on TV
 ```bash
@@ -292,6 +466,16 @@ yarn android --device tv_api_31
 
 ## Known Issues & Warnings
 
+### ⚠️ Critical: Shared Convex Backend
+**DO NOT modify `convex/schema.ts` under any circumstances!**
+
+This TV app uses the same Convex deployment as the production web app (moviezang.com). Schema changes will:
+- Immediately affect production web users
+- Potentially break the web application
+- Require coordination with the web team
+
+Only add new queries/mutations to existing files. Use existing tables only.
+
 ### TypeScript Errors
 - **47 Errors in Unused Files**: Old Ignite boilerplate (Reactotron, i18n, old API) - safe to ignore
 - **Asset Imports**: Ensure `types/assets.d.ts` exists for `.png` imports
@@ -303,9 +487,11 @@ yarn android --device tv_api_31
 - **Phase 11**: ❌ Production builds pending
 
 ### TV Testing
-- Focus states partially implemented (needs TVFocusGuideView in forms)
-- Deep linking untested on physical devices
-- Top shelf images are Ignite placeholders
+- ✅ Text input handling fixed with TVFocusGuideView (JoinRoom, CreateRoom screens)
+- ✅ Focus states implemented on buttons and interactive elements
+- ✅ TV remote event handling implemented (MovieCard D-pad navigation)
+- ✅ Deep linking disabled on TV (not needed - users enter codes manually)
+- ❌ Top shelf images are Ignite placeholders
 
 ## Environment Setup
 

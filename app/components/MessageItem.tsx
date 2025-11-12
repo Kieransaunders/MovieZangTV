@@ -81,6 +81,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                 styles.reactionButton,
                 isReacted && styles.reactionButtonActive,
               ]}
+              focusable={true}
             >
               <Text style={styles.reactionEmoji}>{emoji}</Text>
               {reactionData && reactionData.count > 0 && (

@@ -97,8 +97,9 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
         testID="modal-backdrop"
         style={styles.backdrop}
         onPress={onClose}
+        focusable={false}
       >
-        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()} focusable={false}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>
@@ -108,6 +109,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
               testID="close-button"
               onPress={onClose}
               style={styles.closeButton}
+              focusable={true}
             >
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>

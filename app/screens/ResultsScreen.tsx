@@ -305,6 +305,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ navigation, route }) => {
           <TouchableOpacity
             onPress={() => toggleExpanded(result.id)}
             style={styles.detailsToggle}
+            focusable={true}
           >
             <Text style={styles.detailsToggleText}>
               {isExpanded ? 'Hide voting details' : 'View voting details'}
@@ -365,7 +366,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ navigation, route }) => {
           </View>
         </View>
         <Text style={styles.title}>Movie Results</Text>
-        <TouchableOpacity onPress={() => setShowParticipants(true)}>
+        <TouchableOpacity onPress={() => setShowParticipants(true)} focusable={true}>
           <Text style={styles.subtitle}>
             <Ionicons name="people" size={14} color="#8E8E93" /> {totalParticipants} participant{totalParticipants === 1 ? '' : 's'} voted
           </Text>

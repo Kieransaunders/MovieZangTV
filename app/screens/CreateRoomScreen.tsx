@@ -16,6 +16,12 @@ import {
 } from 'react-native';
 
 const IS_TV = Platform.isTV;
+
+// Conditional import for TV focus guide
+const TVFocusGuideView = Platform.isTV
+  ? require('react-native').TVFocusGuideView
+  : View;
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CreateRoomScreenProps } from 'app/types/navigation';
 import { Button } from 'app/components/ui/Button';
@@ -125,16 +131,18 @@ const CreateRoomScreen: React.FC<CreateRoomScreenProps> = ({ navigation }) => {
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <ScrollView style={[styles.content, IS_TV && styles.tvContent]} showsVerticalScrollIndicator={false}>
         <Text style={[styles.title, IS_TV && styles.tvTitle]}>Create a Room</Text>
-        <Input
-          value={hostName}
-          onChangeText={(text) => {
-            setHostName(text);
-            if (errors.hostName) setErrors({ ...errors, hostName: undefined });
-          }}
-          error={errors.hostName}
-          placeholder="Enter your name"
-          maxLength={50}
-        />
+        <TVFocusGuideView autoFocus>
+          <Input
+            value={hostName}
+            onChangeText={(text) => {
+              setHostName(text);
+              if (errors.hostName) setErrors({ ...errors, hostName: undefined });
+            }}
+            error={errors.hostName}
+            placeholder="Enter your name"
+            maxLength={50}
+          />
+        </TVFocusGuideView>
 
         <View style={[styles.section, IS_TV && styles.tvSection]}>
           <Text style={[styles.sectionTitle, IS_TV && styles.tvSectionTitle]}>Movie Category</Text>

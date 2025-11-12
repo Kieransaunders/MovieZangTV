@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,6 +20,11 @@ import { Input } from 'app/components/ui/Input';
 import { useRoom } from 'app/hooks/useRoom';
 import { useAsyncStorage } from 'app/hooks/useAsyncStorage';
 import { spacing } from 'app/theme';
+
+// Conditional import for TV focus guide
+const TVFocusGuideView = Platform.isTV
+  ? require('react-native').TVFocusGuideView
+  : View;
 
 const JoinRoomScreen: React.FC<JoinRoomScreenProps> = ({ navigation }) => {
   const { joinRoom, isLoading, error } = useRoom();
@@ -100,9 +106,10 @@ const JoinRoomScreen: React.FC<JoinRoomScreenProps> = ({ navigation }) => {
       >
         <View style={styles.content}>
           {/* Back button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
+            focusable={true}
           >
             <Text style={styles.backButtonText}>← Back to Home</Text>
           </TouchableOpacity>
@@ -122,7 +129,7 @@ const JoinRoomScreen: React.FC<JoinRoomScreenProps> = ({ navigation }) => {
                 </Text>
               </View>
 
-              <View style={styles.formContainer}>
+              <TVFocusGuideView style={styles.formContainer} autoFocus>
                 <Input
                   label="Room Code"
                   value={roomCode}
@@ -132,7 +139,7 @@ const JoinRoomScreen: React.FC<JoinRoomScreenProps> = ({ navigation }) => {
                   }}
                   error={errors.roomCode}
                   placeholder="0000"
-                  keyboardType="number-pad"
+                  keyboardType={Platform.isTV ? undefined : "number-pad"}
                   maxLength={4}
                 />
 
@@ -157,7 +164,7 @@ const JoinRoomScreen: React.FC<JoinRoomScreenProps> = ({ navigation }) => {
                   onPress={handleJoinRoom}
                   style={styles.joinButton}
                 />
-              </View>
+              </TVFocusGuideView>
             </LinearGradient>
           </View>
         </View>

@@ -1,6 +1,4 @@
 {
-  "name": "MovieZang",
-  "displayName": "MovieZang",
   "expo": {
     "name": "MovieZang",
     "slug": "moviezang-tv",
@@ -43,17 +41,27 @@
     "ios": {
       "icon": "./assets/images/app-icon-ios.png",
       "supportsTablet": true,
+      "supportsAppleTV": true,
       "bundleIdentifier": "com.moviezang.tv",
+      "deploymentTarget": "14.0",
       "splash": {
         "image": "./assets/images/splash-logo-ios-mobile.png",
         "tabletImage": "./assets/images/splash-logo-ios-tablet.png",
         "resizeMode": "contain",
         "backgroundColor": "#000000"
       },
-      "userInterfaceStyle": "light"
+      "userInterfaceStyle": "light",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "appleTeamId": "QHS5TSHJA5"
     },
     "tvos": {
-      "bundleIdentifier": "com.moviezang.tv"
+      "bundleIdentifier": "com.moviezang.tv",
+      "deploymentTarget": "14.0",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "web": {
       "favicon": "./assets/images/app-icon-web-favicon.png",
@@ -84,7 +92,11 @@
     ],
     "newArchEnabled": true,
     "extra": {
+      "eas": {
+        "projectId": "cd4e9d3e-e060-45d5-a299-f868f75802a6"
+      },
       "convexUrl": "https://kindhearted-dalmatian-79.convex.cloud"
-    }
+    },
+    "owner": "iconnectit"
   }
 }

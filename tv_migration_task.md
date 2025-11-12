@@ -33,7 +33,7 @@
   - [x] Remove MobX and unused dependencies
   - [x] Remove patch-package scripts and dependencies
   - [x] Remove Reactotron ESLint plugin and rules
-- [x] Update `app.json`
+- [x] Update `app.json` (based on [Expo TV docs](https://docs.expo.dev/guides/building-for-tv/) and [IgniteTV reference](https://github.com/react-native-tvos/IgniteTV))
   - [x] Change name to "MovieZang"
   - [x] Change slug to "moviezang-tv"
   - [x] Change scheme to "moviezang"
@@ -45,6 +45,15 @@
   - [x] Remove unused plugins (expo-localization, expo-build-properties)
   - [x] Remove experiments section
   - [x] Remove ignite section
+  - [x] **Add critical Apple TV support configuration**:
+    - [x] Add `ios.supportsAppleTV: true` (required for Apple TV builds)
+    - [x] Add `ios.deploymentTarget: "14.0"`
+    - [x] Add `ios.infoPlist.ITSAppUsesNonExemptEncryption: false` (required for App Store)
+    - [x] Add `ios.appleTeamId: "QHS5TSHJA5"`
+    - [x] Add `tvos.deploymentTarget: "14.0"`
+    - [x] Add `tvos.infoPlist.ITSAppUsesNonExemptEncryption: false` (required for App Store)
+    - [x] Add `extra.eas.projectId` (for EAS builds and TestFlight)
+    - [x] Add `owner: "iconnectit"` (Expo account)
 - [x] Update `android/app/build.gradle`
   - [x] Change namespace to "com.moviezang.tv"
   - [x] Change applicationId to "com.moviezang.tv"
@@ -371,14 +380,49 @@
 
 ## Notes & Issues
 
+### Apple TV Configuration Verification (2025-11-12)
+
+Based on official documentation review:
+- **Reference**: [Expo Building for TV Guide](https://docs.expo.dev/guides/building-for-tv/)
+- **Reference**: [IgniteTV Sample Project](https://github.com/react-native-tvos/IgniteTV)
+
+**Configuration Completed**:
+1. ✅ tvOS SDK 18.5 installed and verified
+2. ✅ react-native-tvos@0.79.1-1 package installed
+3. ✅ @react-native-tvos/config-tv plugin configured
+4. ✅ EXPO_TV=1 prebuild completed (native iOS project configured with SDKROOT=appletvos)
+5. ✅ Bundle identifier: com.moviezang.tv
+6. ✅ iOS project scheme: MovieZang (ready for builds)
+
+**Critical Configuration Added to app.json**:
+- `ios.supportsAppleTV: true` - Enables Apple TV target in iOS builds
+- `ios.deploymentTarget: "14.0"` - Minimum iOS/tvOS version
+- `ios.infoPlist.ITSAppUsesNonExemptEncryption: false` - Required for App Store submission
+- `ios.appleTeamId: "QHS5TSHJA5"` - Apple Developer Team ID
+- `tvos.bundleIdentifier: "com.moviezang.tv"` - Unique app identifier
+- `tvos.deploymentTarget: "14.0"` - Minimum tvOS version
+- `tvos.infoPlist.ITSAppUsesNonExemptEncryption: false` - Required for App Store submission
+- `extra.eas.projectId: "cd4e9d3e-e060-45d5-a299-f868f75802a6"` - For EAS builds
+- `owner: "iconnectit"` - Expo account owner
+
+**App Naming Decision**:
+- Display name: "MovieZang" (same as mobile app for consistent branding)
+- Bundle ID: com.moviezang.tv (different from mobile: com.moviezang.mobileapp)
+- This allows both apps to appear as "MovieZang" in their respective App Stores
+
+**Ready for TestFlight**:
+The app now has all required configuration for Apple TV TestFlight distribution and App Store submission.
+
 ### Known Issues
-- (Track any issues discovered during migration here)
+- TypeScript errors remain in unused Ignite boilerplate files (Reactotron, i18n, old API services) - can be deleted in Phase 12
+- TV-specific UI optimizations pending (focus states, spacing tokens) - Phase 4 & 5
 
 ### Technical Debt
-- (Track any shortcuts or TODOs for future improvement)
+- TV assets still using placeholder "ignite-tvos" images - need MovieZang branding (Phase 9)
+- Focus navigation patterns need testing on actual TV hardware (Phase 10)
 
 ### Questions/Decisions
-- (Track any open questions or decisions needed)
+- ✅ App naming: Decided on "MovieZang" (same as mobile) with different bundle IDs
 
 ---
 

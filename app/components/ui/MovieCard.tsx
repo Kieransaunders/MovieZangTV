@@ -13,8 +13,8 @@ import {
   PanResponder,
   Dimensions,
   TouchableOpacity,
+  Pressable,
   Platform,
-  useTVEventHandler,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,9 +33,6 @@ interface MovieCardProps {
   isTopCard?: boolean;
   cardHeight?: number;
 }
-
-// Store focus state outside component to persist across movie changes
-let lastFocusedButton: 'nope' | 'like' = 'like';
 
 export const MovieCard: React.FC<MovieCardProps> = ({
   movie,
@@ -130,34 +127,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
   // TV-optimized horizontal layout
   if (IS_TV) {
-    const [focusedButton, setFocusedButton] = useState<'nope' | 'like'>(lastFocusedButton);
-
-    // Use the hook-based TV event handler
-    const handleTVEvent = (evt: any) => {
-      if (evt && evt.eventType) {
-        console.log('TV Event:', evt.eventType);
-
-        if (evt.eventType === 'right') {
-          console.log('Right pressed, switching to Like');
-          setFocusedButton('like');
-          lastFocusedButton = 'like';
-        } else if (evt.eventType === 'left') {
-          console.log('Left pressed, switching to Nope');
-          setFocusedButton('nope');
-          lastFocusedButton = 'nope';
-        } else if (evt.eventType === 'select') {
-          console.log('Select pressed on:', focusedButton);
-          if (focusedButton === 'nope') {
-            onSwipeLeft(movie);
-          } else {
-            onSwipeRight(movie);
-          }
-        }
-      }
-    };
-
-    useTVEventHandler(handleTVEvent);
-
     return (
       <View style={tvStyles.wrapper}>
         <View style={tvStyles.container}>
@@ -241,49 +210,37 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
             {/* Action Buttons */}
             <View style={tvStyles.actionButtonsContainer}>
-              <TouchableOpacity
-                style={[
+              <Pressable
+                focusable={true}
+                style={({ focused }) => [
                   tvStyles.nopeButton,
-                  focusedButton === 'nope' && tvStyles.nopeButtonFocused
+                  focused && tvStyles.nopeButtonFocused
                 ]}
                 onPress={() => {
-                  console.log('Nope pressed via touch');
+                  console.log('Nope button pressed');
                   onSwipeLeft(movie);
                 }}
-                activeOpacity={0.7}
-                tvParallaxProperties={focusedButton === 'nope' ? {
-                  enabled: true,
-                  shiftDistanceX: 5,
-                  shiftDistanceY: 5,
-                  tiltAngle: 0.15,
-                  magnification: 1.2,
-                  pressMagnification: 1.0,
-                } : undefined}
+                onFocus={() => console.log('Nope button focused')}
+                onBlur={() => console.log('Nope button blurred')}
               >
                 <Text style={tvStyles.nopeButtonText}>Nope</Text>
-              </TouchableOpacity>
+              </Pressable>
 
-              <TouchableOpacity
-                style={[
+              <Pressable
+                focusable={true}
+                style={({ focused }) => [
                   tvStyles.likeButton,
-                  focusedButton === 'like' && tvStyles.likeButtonFocused
+                  focused && tvStyles.likeButtonFocused
                 ]}
                 onPress={() => {
-                  console.log('Like pressed via touch');
+                  console.log('Like button pressed');
                   onSwipeRight(movie);
                 }}
-                activeOpacity={0.7}
-                tvParallaxProperties={focusedButton === 'like' ? {
-                  enabled: true,
-                  shiftDistanceX: 5,
-                  shiftDistanceY: 5,
-                  tiltAngle: 0.15,
-                  magnification: 1.2,
-                  pressMagnification: 1.0,
-                } : undefined}
+                onFocus={() => console.log('Like button focused')}
+                onBlur={() => console.log('Like button blurred')}
               >
                 <Text style={tvStyles.likeButtonText}>Like</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -374,6 +331,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         <TouchableOpacity
           style={styles.nopeButton}
           onPress={() => onSwipeLeft(movie)}
+          focusable={true}
         >
           <Text style={styles.nopeButtonText}>✕ Nope</Text>
         </TouchableOpacity>
@@ -381,6 +339,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         <TouchableOpacity
           style={styles.likeButton}
           onPress={() => onSwipeRight(movie)}
+          focusable={true}
         >
           <LinearGradient
             colors={['#ef4444', '#f97316']}
